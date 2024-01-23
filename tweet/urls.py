@@ -11,6 +11,7 @@ from .views import (
     RemoveFriendView,
     FollowUserView,
     UnfollowUserView,
+    UserProfileView,
 )
 
 
@@ -50,5 +51,15 @@ urlpatterns = [
     path("followers/follow/<int:user_id>/", FollowUserView.as_view(), name="follow"),
     path(
         "followers/unfollow/<int:user_id>/", UnfollowUserView.as_view(), name="unfollow"
+    ),
+    path(
+        "user/profile/<int:pk>/",
+        UserProfileView.as_view({"get": "retrieve"}),
+        name="get_user_profile",
+    ),
+    path(
+        "user/edit-profile/<int:pk>/",
+        UserProfileView.as_view({"put": "update"}),
+        name="update_user_profile",
     ),
 ]

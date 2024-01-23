@@ -14,8 +14,8 @@ from .serializers import (
 from .models import Post, Like, Comment, FriendRequest, CustomUser, Friendship, Follow
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import CreateAPIView
-from .custom_permissions import IsOriginalUser
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
+from .custom_permissions import IsOwnerOrReadOnly, IsOriginalUser
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -102,8 +102,6 @@ class RespondToFriendRequestView(APIView):
         )
 
         if action == "accept":
-            print("here")
-
             Friendship.objects.create(
                 user1=request.user, user2=friend_request.from_user
             )
@@ -112,6 +110,7 @@ class RespondToFriendRequestView(APIView):
             return Response(
                 {"detail": "Friend request accepted."}, status=status.HTTP_200_OK
             )
+
         elif action == "reject":
             friend_request.is_accepted_or_rejected = True
             return Response(
@@ -178,3 +177,13 @@ class UnfollowUserView(APIView):
         return Response(
             {"detail": "User unfollowed successfully."}, status=status.HTTP_200_OK
         )
+
+
+class UserProfileView(ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return super().update(request, *args, **kwargs)

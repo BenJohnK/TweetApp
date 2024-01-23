@@ -1,24 +1,55 @@
 from rest_framework import serializers
-from .models import CustomUser, Post, Like, Comment, FriendRequest, Friendship
+from .models import CustomUser, Post, Like, Comment, FriendRequest, Follow, Friendship
+from django.db.models import Q
 
 
 class UserSerializer(serializers.ModelSerializer):
     password_confirmation = serializers.CharField(write_only=True)
+    number_of_posts = serializers.SerializerMethodField()
+    number_of_followers = serializers.SerializerMethodField()
+    number_of_following = serializers.SerializerMethodField()
+    number_of_friends = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ["id", "username", "email", "password", "password_confirmation"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "password_confirmation",
+            "phone_number",
+            "number_of_posts",
+            "number_of_followers",
+            "number_of_following",
+            "number_of_friends",
+        ]
         extra_kwargs = {"password": {"write_only": True}, "email": {"required": True}}
 
     def validate(self, data):
-        if data["password"] != data["password_confirmation"]:
-            raise serializers.ValidationError("Passwords do not match.")
+        if "password" in data:
+            if data["password"] != data["password_confirmation"]:
+                raise serializers.ValidationError("Passwords do not match.")
         return data
 
     def create(self, validated_data):
         validated_data.pop("password_confirmation", None)
         user = CustomUser.objects.create_user(**validated_data)
         return user
+
+    def get_number_of_posts(self, obj):
+        posts = Post.objects.filter(user=obj)
+        return posts.count()
+
+    def get_number_of_followers(self, obj):
+        return Follow.objects.filter(following=obj).count()
+
+    def get_number_of_following(self, obj):
+        return Follow.objects.filter(follower=obj).count()
+
+    def get_number_of_friends(self, obj):
+        friendships = Friendship.objects.filter(Q(user1=obj) | Q(user2=obj))
+        return friendships.count()
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
