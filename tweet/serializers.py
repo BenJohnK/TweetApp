@@ -1,26 +1,22 @@
 from rest_framework import serializers
-from .models import CustomUser, Post, Like, Comment
+from .models import CustomUser, Post, Like, Comment, FriendRequest, Friendship
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     password_confirmation = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'password', 'password_confirmation']
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'email': {'required': True}
-        }
+        fields = ["id", "username", "email", "password", "password_confirmation"]
+        extra_kwargs = {"password": {"write_only": True}, "email": {"required": True}}
 
     def validate(self, data):
-        if data['password'] != data['password_confirmation']:
+        if data["password"] != data["password_confirmation"]:
             raise serializers.ValidationError("Passwords do not match.")
         return data
 
     def create(self, validated_data):
-        validated_data.pop('password_confirmation', None)
+        validated_data.pop("password_confirmation", None)
         user = CustomUser.objects.create_user(**validated_data)
         return user
 
@@ -28,14 +24,14 @@ class UserSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'username']
+        fields = ["id", "username"]
 
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ['id', 'user', 'post', 'timestamp']
-        read_only_fields = ['user', 'post']
+        fields = ["id", "user", "post", "timestamp"]
+        read_only_fields = ["user", "post"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -43,8 +39,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'post', 'text', 'timestamp']
-        read_only_fields = ['user', 'post']
+        fields = ["id", "user", "post", "text", "timestamp"]
+        read_only_fields = ["user", "post"]
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -56,17 +52,35 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'text', 'user', 'time_stamp', 'likes_count', 'liked_by', 'comments', 'comments_count']
+        fields = [
+            "id",
+            "text",
+            "user",
+            "time_stamp",
+            "likes_count",
+            "liked_by",
+            "comments",
+            "comments_count",
+        ]
 
     def get_likes_count(self, obj):
         return obj.likes.count()
 
     def get_liked_by(self, obj):
         likes = Like.objects.filter(post=obj)
-        liked_users = likes.values('user')
-        user_ids = [like['user'] for like in liked_users]
+        liked_users = likes.values("user")
+        user_ids = [like["user"] for like in liked_users]
         liked_users_data = CustomUser.objects.filter(id__in=user_ids)
         return CustomUserSerializer(liked_users_data, many=True).data
 
     def get_comments_count(self, obj):
         return obj.comments.count()
+
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    from_user = UserSerializer(read_only=True)
+    to_user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = FriendRequest
+        fields = ["id", "from_user", "to_user", "is_accepted_or_rejected", "timestamp"]

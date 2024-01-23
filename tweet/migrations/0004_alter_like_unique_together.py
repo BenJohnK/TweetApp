@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tweet', '0003_rename_posts_post'),
+        ("tweet", "0003_rename_posts_post"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='like',
-            unique_together={('user', 'post')},
+            name="like",
+            unique_together={("user", "post")},
         ),
     ]

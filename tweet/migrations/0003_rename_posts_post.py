@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tweet', '0002_posts_like_comment'),
+        ("tweet", "0002_posts_like_comment"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='Posts',
-            new_name='Post',
+            old_name="Posts",
+            new_name="Post",
         ),
     ]
