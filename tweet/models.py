@@ -69,3 +69,13 @@ class Friendship(models.Model):
 
     class Meta:
         unique_together = ["user1", "user2"]
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="followers"
+    )
+    following = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="following"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)

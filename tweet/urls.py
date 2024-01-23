@@ -9,6 +9,8 @@ from .views import (
     SendFriendRequestView,
     RespondToFriendRequestView,
     RemoveFriendView,
+    FollowUserView,
+    UnfollowUserView,
 )
 
 
@@ -44,5 +46,9 @@ urlpatterns = [
         "friends/remove/<int:friend_id>/",
         RemoveFriendView.as_view(),
         name="remove_friend",
+    ),
+    path("followers/follow/<int:user_id>/", FollowUserView.as_view(), name="follow"),
+    path(
+        "followers/unfollow/<int:user_id>/", UnfollowUserView.as_view(), name="unfollow"
     ),
 ]

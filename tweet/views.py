@@ -11,7 +11,7 @@ from .serializers import (
     CommentSerializer,
     FriendRequestSerializer,
 )
-from .models import Post, Like, Comment, FriendRequest, CustomUser, Friendship
+from .models import Post, Like, Comment, FriendRequest, CustomUser, Friendship, Follow
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView
@@ -129,3 +129,52 @@ class RemoveFriendView(APIView):
         )
         friendship.delete()
         return Response({"detail": "Friend removed."}, status=status.HTTP_200_OK)
+
+
+class FollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id, *args, **kwargs):
+        to_user = get_object_or_404(CustomUser, id=user_id)
+
+        if request.user == to_user:
+            return Response(
+                {"detail": "Cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if Follow.objects.filter(follower=request.user, following=to_user).exists():
+            return Response(
+                {"detail": "You are already following this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        Follow.objects.create(follower=request.user, following=to_user)
+        return Response(
+            {"detail": "User followed successfully."}, status=status.HTTP_200_OK
+        )
+
+
+class UnfollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, user_id, *args, **kwargs):
+        to_user = get_object_or_404(CustomUser, id=user_id)
+
+        if request.user == to_user:
+            return Response(
+                {"detail": "Cannot unfollow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        follow = Follow.objects.filter(follower=request.user, following=to_user)
+        if not follow.exists():
+            return Response(
+                {"detail": "You are not following this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        follow.delete()
+        return Response(
+            {"detail": "User unfollowed successfully."}, status=status.HTTP_200_OK
+        )
