@@ -22,3 +22,23 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text='Specific permissions for this user.',
     )
+
+
+class Post(models.Model):
+    text = models.TextField()
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+
+
+class Like(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+

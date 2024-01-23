@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Post
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,3 +23,20 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data.pop('password_confirmation', None)
         user = CustomUser.objects.create_user(**validated_data)
         return user
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username']
+
+
+class PostSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        fields = ['id', 'text', 'user', 'time_stamp']
+
+
+
