@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Post
+from .models import CustomUser, Post, Like, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -31,12 +31,42 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username']
 
 
-class PostSerializer(serializers.ModelSerializer):
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['id', 'user', 'post', 'timestamp']
+        read_only_fields = ['user', 'post']
+
+
+class CommentSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)
 
     class Meta:
+        model = Comment
+        fields = ['id', 'user', 'post', 'text', 'timestamp']
+        read_only_fields = ['user', 'post']
+
+
+class PostSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    liked_by = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True, read_only=True)
+    comments_count = serializers.SerializerMethodField()
+
+    class Meta:
         model = Post
-        fields = ['id', 'text', 'user', 'time_stamp']
+        fields = ['id', 'text', 'user', 'time_stamp', 'likes_count', 'liked_by', 'comments', 'comments_count']
 
+    def get_likes_count(self, obj):
+        return obj.likes.count()
 
+    def get_liked_by(self, obj):
+        likes = Like.objects.filter(post=obj)
+        liked_users = likes.values('user')
+        user_ids = [like['user'] for like in liked_users]
+        liked_users_data = CustomUser.objects.filter(id__in=user_ids)
+        return CustomUserSerializer(liked_users_data, many=True).data
 
+    def get_comments_count(self, obj):
+        return obj.comments.count()
