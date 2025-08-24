@@ -9,7 +9,7 @@ Please follow these steps to setup the project.
 6)run python manage.py createsuperuser to create a new admin user (optional)  
 7)Create a .env file in the root directory and insert the required variables  
 8) Run python manage.py runserver to start the server.  
----------------------------------------------------------------------------------------------------------------
+
 
 env file sample   
 
